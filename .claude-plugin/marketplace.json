@@ -1,0 +1,14 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "python-skills",
+  "description": "Python development and refactoring skills for Claude Code.",
+  "owner": { "name": "1y33", "url": "https://github.com/1y33" },
+  "plugins": [
+    {
+      "name": "python-skills",
+      "description": "python-dev and python-refactor skills.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}

@@ -23,6 +23,9 @@ done
 ! grep -n '^```' "$DEV/SKILL.md" "$ROOT/skills/python-refactor/SKILL.md" \
   $(ls "$DEV"/references/*.md | grep -v -e '/patterns.md$' -e '/project-setup.md$')
 grep -Fq 'abc.ABC with @abstractmethod' "$DEV/SKILL.md"
+# Closed sets are taught as enums, and containment catches do not swallow programmer errors.
+grep -Fq 'class Status(StrEnum)' "$DEV/references/patterns.md"
+grep -Fq 'programmer errors (KeyError, TypeError' "$DEV/SKILL.md"
 
 # Manifests parse and point at the skills directory.
 node -e 'const p=require(process.argv[1]); if (p.pi.skills[0] !== "./skills") process.exit(1)' "$ROOT/package.json"

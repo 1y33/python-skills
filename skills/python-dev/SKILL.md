@@ -54,18 +54,18 @@ Patterns (pick by fit; snippets in [patterns](references/patterns.md)): callable
 
 ## Structure and readability
 
-Keep cohesive logic together, with a functional core and an imperative shell: pure logic inside, I/O at the edges, so backends attach at the shell and logic tests need no mocks. Extract functions for reuse, independent reasoning, or effect isolation; avoid chains of one-use forwarding helpers, and never extract a helper just to avoid a useful comment. Use classes for owned state, lifecycle, or cohesive behavior. Do not split by line count or force one module, one class per file, role folders, factories, or service/repository layers.
+Keep cohesive logic together, with a functional core and an imperative shell: pure logic inside, I/O at the edges, so backends attach at the shell and logic tests need no mocks. Extract functions for reuse, independent reasoning, or effect isolation; avoid chains of one-use forwarding helpers, and never extract a helper just to avoid a useful comment. Use classes for owned state, lifecycle, or cohesive behavior. Do not split by line count or force one module, one class per file, role folders, factories, or service/repository layers; do split a function that runs several stages and a class whose methods share no state. Orchestration reads as a short list of named stage calls with typed results.
 
 Module boundaries follow responsibility and dependency direction; isolate transport and storage details that would couple reusable logic. Keep related definitions nearby, exports discoverable, imports acyclic and free of side effects.
 
-Name abstractions by domain responsibility and concrete classes by the behavior or backend that distinguishes them; if two classes cannot be told apart that way, reconsider the split. Avoid generic names, suffix-only distinctions, and deep inheritance. Use domain names consistently, explicit signatures, keyword-only confusable arguments, and ordinary control flow.
+Name abstractions by domain responsibility and concrete classes by the behavior or backend that distinguishes them; if two classes cannot be told apart that way, reconsider the split. Avoid generic names, suffix-only distinctions, and deep inheritance. Locals and parameters get descriptive names too; one-letter names only for loop indices or a named math convention. Use domain names consistently, explicit signatures, keyword-only confusable arguments, and ordinary control flow.
 
 Comments and docstrings carry only what names, types, and code cannot: reasons, hidden constraints, non-obvious contracts, usually in one sentence. Clear functions and self-explanatory classes, public ones included, need none. Delete narration and boilerplate.
 
 ## Types, validation, values
 
 - Annotate changed functions and public contracts; let locals infer. Use the configured checker; new maintained libraries and services pass `mypy --strict` or equivalent; scripts and training code annotate public functions; changed files add no new errors. Keep Any and suppressions narrow; never cast away a violated contract.
-- Match the supported Python version; use built-in generics and `X | Y`. Pick Callable, TypedDict, dataclass, enum, or union by actual shape, ABCs for class interfaces, named records over ambiguous tuples.
+- Match the supported Python version; use built-in generics and `X | Y`. Pick Callable, dataclass, enum, or union by actual shape, ABCs for class interfaces. Closed value sets are enums (StrEnum when serialized), compared by member, never raw strings. Records are frozen dataclasses, not `dict[str, Any]` or tuples; serialize at the I/O edge.
 - Parse, don't validate: convert untrusted input into a precise type once at entry so inner code never re-checks it. Annotations are not runtime validation. Use simple checks for simple inputs and Pydantic for structured schemas, specifying coercion, unknown fields, size limits, and cross-field rules. Never use assert for external validation; validators never do I/O.
 - Model incompatible states explicitly; exhaust closed unions with assert_never. Prefer immutable shared values (frozen is shallow). No mutable defaults or undocumented aliasing.
 - Preserve meaningful order: dicts keep insertion order; sets and directory listings do not. Sort only when canonical order is required. Check equal lengths before zipping when truncation loses data.
@@ -76,7 +76,7 @@ Comments and docstrings carry only what names, types, and code cannot: reasons, 
 
 Use specific built-in exceptions; add custom types only when callers handle them differently. Return typed outcomes for expected branches, never ambiguous empty values. Preserve safe causes; redact secrets and upstream details, including in chained tracebacks.
 
-Catch only where recovery or reporting happens; broad catches only at explicit containment boundaries. Never swallow cancellation or exit signals. Tolerated failure needs an observable, documented policy; report each exception once at the responsible boundary.
+Catch only where recovery or reporting happens; broad catches only at explicit containment boundaries, and even there programmer errors (KeyError, TypeError, AttributeError, AssertionError) propagate: catch the named failure the callee raises. Never swallow cancellation or exit signals. Tolerated failure needs an observable, documented policy; report each exception once at the responsible boundary.
 
 Resources have explicit owners and context-managed cleanup, including partial acquisition. Close what you own, not what you borrow. Bound waits with a deadline and bound retries, buffers, queues, and caches with overflow behavior. Cache keys include every input that changes the result. Assemble configuration and dependencies explicitly; no service locators. Test supplied dependencies with `is None`, not truthiness.
 

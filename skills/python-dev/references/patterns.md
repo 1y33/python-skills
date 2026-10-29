@@ -10,7 +10,7 @@ Read when applying a pattern from the extension check. Snippets show shape, not 
 - Pydantic strictness differs between Python and JSON input, so test the real ingestion path; `model_copy(update=...)` skips validation.
 - Runtime state (credentials configured, resource not created yet, lookup results): a guard clause where it is used.
 
-Smells: `assert isinstance` on your own data (the upstream type is too loose); `getattr(obj, action)` on a string (use a Literal and explicit calls); `**fields: object` update bags (use typed parameters or a dataclass); an if/elif chain over a closed set (use `match` ending in `assert_never`).
+Smells: `assert isinstance` on your own data (the upstream type is too loose); `getattr(obj, action)` on a string (use an enum and explicit calls); `x == "literal"` over a closed set (use an enum member); `dict[str, Any]` records passed between functions (use a frozen dataclass); `**fields: object` update bags (use typed parameters or a dataclass); an if/elif chain over a closed set (use `match` ending in `assert_never`).
 
 ### Examples
 
@@ -48,18 +48,21 @@ url = settings.database_url
 store = PostgresEventStore(url) if url is not None else SqliteEventStore(db_path)
 ```
 
-Closed set: Literal plus match instead of `getattr(self.runner, action)`.
+Closed set: enum plus match instead of `getattr(self.runner, action)` or string compares.
 
 ```python
-Action = Literal["pause", "resume", "cancel"]
+class Action(StrEnum):  # StrEnum: serializes as its value
+    PAUSE = "pause"
+    RESUME = "resume"
+    CANCEL = "cancel"
 
 async def apply(self, action: Action, job: Job) -> None:
     match action:
-        case "pause":
+        case Action.PAUSE:
             await self.runner.pause(job)
-        case "resume":
+        case Action.RESUME:
             await self.runner.resume(job)
-        case "cancel":
+        case Action.CANCEL:
             await self.runner.cancel(job)
         case _:
             assert_never(action)
@@ -70,13 +73,17 @@ async def apply(self, action: Action, job: Job) -> None:
 Entities with a lifecycle (job, order, subscription). Every status write goes through one function that checks the allowed transition and writes conditionally on the current status, instead of status assignments scattered through the service.
 
 ```python
-Status = Literal["pending", "paid", "shipped", "cancelled"]
+class Status(StrEnum):
+    PENDING = "pending"
+    PAID = "paid"
+    SHIPPED = "shipped"
+    CANCELLED = "cancelled"
 
 ALLOWED: dict[Status, frozenset[Status]] = {
-    "pending": frozenset({"paid", "cancelled"}),
-    "paid": frozenset({"shipped", "cancelled"}),
-    "shipped": frozenset(),
-    "cancelled": frozenset(),
+    Status.PENDING: frozenset({Status.PAID, Status.CANCELLED}),
+    Status.PAID: frozenset({Status.SHIPPED, Status.CANCELLED}),
+    Status.SHIPPED: frozenset(),
+    Status.CANCELLED: frozenset(),
 }
 
 def transition(store: Store, item_id: str, current: Status, new: Status) -> None:
@@ -211,3 +218,4 @@ class S3BlobStore(BlobStore):
 - [ ] Each branch sits where it belongs: schema, adapter model, one variant per class, or a runtime guard.
 - [ ] The chosen pattern matches its fit line above; no pattern was added without a named variant or repeated behavior.
 - [ ] Lifecycle status changes go through one transition function with conditional writes.
+- [ ] Closed sets are enums; records are dataclasses; no raw-string compares or `dict[str, Any]` records in inner code.

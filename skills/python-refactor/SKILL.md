@@ -21,7 +21,7 @@ Report actionable findings with path, symbol or line, evidence, consequence, and
 - Usability/change cost: difficult normal invocation, hidden assembly, scattered policy, cross-module edits for one extension, mutable cross-stage state, or hard-to-follow call chains.
 - Maintainability: ambiguous names/types, classes indistinguishable by responsibility or behavior, duplicated stable behavior, `assert isinstance` on the code's own data, `getattr` dispatch on strings, untyped `**fields` bags, if/elif chains over closed sets, dependency cycles, stale comments, or unnecessary adapters and packages.
 
-Size alone is not a finding. Missing abstractions are not defects without a concrete need. Evaluate whether removing, combining, or relocating code would clarify the flow before extracting more helpers. Keep abstractions that protect real contracts even if they have one current implementation.
+Size alone is not a finding; a function running several stages, a class whose methods share no state, raw-string comparisons over a closed set, and `dict[str, Any]` records are. Missing abstractions are not defects without a concrete need. Evaluate whether removing, combining, or relocating code would clarify the flow before extracting more helpers. Keep abstractions that protect real contracts even if they have one current implementation.
 
 Present findings before implementation unless the user authorized proceeding. For broad work, agree on scope and compatibility before restructuring.
 

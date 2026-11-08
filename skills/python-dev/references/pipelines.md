@@ -1,6 +1,6 @@
 # Extensible processing
 
-Read when designing multi-stage execution, interchangeable transformations, or resumable processing. Separate stable execution from variable work without prescribing classes, subpackages, or an event bus.
+Read when designing multi-stage execution, interchangeable transformations, or resumable processing. Steps implement one stage ABC and run from an explicit ordered list (see the ordered-steps pattern); no event bus.
 
 ## Composition and discoverability
 
@@ -10,7 +10,7 @@ Keep implementations near their contracts. A new component should normally requi
 
 ## Transformation contracts
 
-Define input/output representations, preconditions, postconditions, preserved invariants, mutation/aliasing, determinism, and failure behavior. Choose functions for stateless transformations and objects for owned state or lifecycle. Avoid separate abstract roles that have identical obligations. Pass only needed configuration; do not invent config classes for components with no configuration.
+Define input/output representations, preconditions, postconditions, preserved invariants, mutation/aliasing, determinism, and failure behavior. Every step implements the stage ABC, stateless ones included, so all steps plug in the same way. Avoid separate abstract roles that have identical obligations. Pass only needed configuration; do not invent config classes for components with no configuration.
 
 Track dependencies between stages. Values derived from a stage's output are invalidated or recomputed when that output changes. Cache keys include all semantic inputs and relevant versions; object identity alone is not proof of unchanged contents. Do not expose mutable cache entries to consumers.
 

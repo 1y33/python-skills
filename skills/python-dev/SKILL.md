@@ -26,7 +26,7 @@ Read this core once; re-read only after it changes or leaves context, never re-a
 
 Trace entrypoints, callers, data flow, dependencies, and tests. Reuse existing behavior. Preserve tooling, compatible APIs, and conventions unless migration is requested. Fix shared causes, not symptoms. Keep unrelated cleanup out of the diff.
 
-Establish inputs, outputs, invariants, failures, mutation, ownership, ordering, and compatibility. Distinguish missing, empty, zero, and None when the value is persisted, crosses an API, or callers branch on it. For risky work, identify failure windows and recovery first.
+Know what the code reads, writes, owns, and how it fails. Distinguish missing, empty, zero, and None when the value is persisted, crosses an API, or callers branch on it. For risky work, identify failure windows and recovery first.
 
 ## Usage, flow, extension
 
@@ -34,31 +34,27 @@ Establish inputs, outputs, invariants, failures, mutation, ownership, ordering, 
 - Keep orchestration readable in execution order and dependency assembly discoverable.
 - Reversibility sets design effort: public APIs, persisted formats, schemas, and extension contracts get deliberate design and versioning; easily changed internals stay the simplest thing that works.
 
-### Extension check (reason before building)
+### Interfaces first
 
-Minimal code means no speculative features, not no seams. Before writing a component others will build on, answer in your reasoning:
+- Every role that can have more than one implementation is an ABC: I/O boundaries (storage, HTTP, providers, models, cache, notifier), pipeline steps (rules, stages, validators, metrics, callbacks), format variants (loaders, exporters), policies (pricing, scoring, permissions, retry), and handlers picked by key (message types, commands, webhooks).
+- Compose explicitly: inject by constructor, run steps from an ordered list (`for rule in rules: rule.apply(ctx)`), pick handlers from a dict. A new variant is one new class plus one line in that list or dict.
+- Design for extension: shape each interface for the variants you can foresee (the next backend, format, rule, provider), so adding one later is a new class with no edits to existing code. Implement the variants the task uses now; foreseen variants live in the interface design.
+- Not interfaces: plain data (Pydantic models, dataclasses) and a single algorithm with nothing to swap. A test fake alone does not justify an interface.
+- If a variant does not fit, first refactor to create the seam without changing behavior, then add the variant as a separate step. Snippets: [patterns](references/patterns.md).
 
-1. What is the next credible variant (format, backend, provider, metric, stage, policy), from requirements, domain variation, or existing consumers?
-2. Where would it go? Target: one new implementation plus one line of explicit composition, no edits to unrelated modules or duplicated orchestration.
-3. Which behavior repeats in 3+ places, or in 2 that must change together (retry, timing, caching, validation, logging, setup)?
-4. Which pattern makes the variant cheaper without adding indirection to read?
+### Contracts
 
-Add the seam now when the task, issue, or docs name variants; two or more production variants exist (test fakes do not count); or the component is a public API, persisted format, extension contract, or a reusable integration layer over interchangeable external systems. Otherwise write direct code; for components others build on, add a `shortcut:` note naming where the seam would go and its trigger. Scripts and one-off jobs need no note. A seam that saves a later rewrite is the minimal change; general minimal-code rules do not override this check. If an extension does not fit, first refactor to create the seam without changing behavior, then add the variant as a separate step.
-
-Patterns (pick by fit; snippets in [patterns](references/patterns.md)): callable parameter; ABC strategy with explicit composition; decorator registry (dict beside the contract, explicitly imported, never cross-package import-time discovery); typed cross-cutting decorator (`functools.wraps`, `ParamSpec`) for retry, timing, tracing, caching, permissions; context manager; template method; pipeline of stages; adapter at transport or storage boundaries; `singledispatch` or `match`; typed result or outcome enum instead of flags and sentinels.
-
-### Seams and contracts
-
-- Choose the smallest sufficient seam: parameter, callable, concrete collaborator, or explicit interface. Prefer deep modules: a small interface over substantial behavior. New class-based extension contracts that implementers subclass use abc.ABC with @abstractmethod, not typing.Protocol; use Protocol only to accept types you do not own; keep abstract requirements minimal and inherited defaults contract-preserving. A test fake alone does not justify an interface.
-- Contracts state inputs, outputs, invariants, ordering, mutation, lifecycle, and failures. No hidden registration, dynamic discovery, or event buses without concrete need; a decorator registry in the contract's own module, explicitly imported, is not hidden.
+Extension contracts use abc.ABC with @abstractmethod, not typing.Protocol; use Protocol only to accept types you do not own. Keep abstract methods few and inherited defaults contract-preserving. Prefer deep modules: a small interface over substantial behavior. The ABC docstring states only what the signature cannot: ordering, mutation, failure. Composition stays visible: no import-time discovery across packages or event buses; a decorator registry in the contract's own module is fine.
 
 ## Structure and readability
 
-Keep cohesive logic together, with a functional core and an imperative shell: pure logic inside, I/O at the edges, so backends attach at the shell and logic tests need no mocks. Extract functions for reuse, independent reasoning, or effect isolation; avoid chains of one-use forwarding helpers, and never extract a helper just to avoid a useful comment. Use classes for owned state, lifecycle, or cohesive behavior. Do not split by line count or force one module, one class per file, role folders, factories, or service/repository layers; do split a function that runs several stages and a class whose methods share no state. Orchestration reads as a short list of named stage calls with typed results.
+Keep cohesive logic together in a few readable functions; I/O enters through injected interfaces, so logic tests need no mocks. Extract a function for reuse or to isolate an effect; never one-use forwarding helpers, one-line aliases, or a helper that only replaces a useful comment. Use classes for owned state, lifecycle, or cohesive behavior. Do not split by line count or force one module, one class per file, role folders, factories, or service/repository layers; do split a function that runs several stages and a class whose methods share no state. Orchestration reads as a short list of named stage calls with typed results.
 
 Module boundaries follow responsibility and dependency direction; isolate transport and storage details that would couple reusable logic. Keep related definitions nearby, exports discoverable, imports acyclic and free of side effects.
 
-Name abstractions by domain responsibility and concrete classes by the behavior or backend that distinguishes them; if two classes cannot be told apart that way, reconsider the split. Avoid generic names, suffix-only distinctions, and deep inheritance. Locals and parameters get descriptive names too; one-letter names only for loop indices or a named math convention. Use domain names consistently, explicit signatures, keyword-only confusable arguments, and ordinary control flow.
+Name abstractions by domain responsibility and concrete classes by the behavior or backend that distinguishes them; if two classes cannot be told apart that way, reconsider the split. Avoid generic names, suffix-only distinctions, and deep inheritance.
+
+Names say what the thing is in the domain, locals and parameters included. No single-letter or abbreviated names outside short math expressions and loop indices; no alias that renames an existing call (`def _m(fn, *a): return ops.Map(fn, a)`), call the real thing. Use a leading underscore only to hide a name from a module's public API; internal modules do not underscore everything. A helper copied into two modules becomes one named function in a shared module. Use domain names consistently, explicit signatures, keyword-only confusable arguments, and ordinary control flow.
 
 Comments and docstrings carry only what names, types, and code cannot: reasons, hidden constraints, non-obvious contracts, usually in one sentence. Clear functions and self-explanatory classes, public ones included, need none. Delete narration and boilerplate.
 
@@ -85,10 +81,10 @@ Configure logging only at entrypoints ([observability](references/observability.
 ## Verification and delivery
 
 - Test observable contracts by risk: normal path, boundaries, failure, cleanup, each fixed regression. No per-helper test quota.
-- Prefer real components and small fakes at real seams. Unit tests control clocks, network, randomness, and order; integration tests cover what fakes cannot. When a fake stands in for a third-party API, pin its shape with recorded real responses. Use property, differential, or fuzz tests when invariants justify them.
+- Prefer real components and small fakes at real seams. Unit tests control clocks, network, randomness, and order; integration tests cover what fakes cannot. When a fake stands in for a third-party API, pin its shape with recorded real responses.
 - Measure representative time and peak memory before optimizing; keep correctness checks beside benchmarks.
 - Check exports, entrypoints, configuration, and compatibility end to end. New extension points get a substitution test through the public path; changed formats get compatibility tests.
 - Run the repository's formatter, lint, type checks, and relevant tests. If a public symbol, schema, or module imported by several packages changes, run the full suite and type-check the whole package. Report failures and unrun checks; a build does not prove behavior. Never delete or loosen an assertion, add a skip, or widen a suppression to pass; fix the code or report.
 - Before using a function, argument, or package not already used in the repository, confirm it exists in the installed version (its source, `help()`, or docs, not memory) and that a new package name is the real project.
 - Before reporting, read the whole diff as a reviewer: what else writes this state, what if it runs twice, concurrently, or after a crash, what a failure costs, and what can be deleted.
-- Deliver the usage path and, if structure changed, a map of actual paths and symbols (entrypoint, major calls, data ownership, extension location; a folder tree is not a map). Keep the report short; name concrete debt with its upgrade trigger, never blanket future-proofing claims.
+- Report briefly: what changed, how to call it, where the next variant goes, checks run and not run.

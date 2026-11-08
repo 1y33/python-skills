@@ -19,9 +19,9 @@ Report actionable findings with path, symbol or line, evidence, consequence, and
 
 - Correctness/security: violated invariants, unvalidated boundaries, data loss, leaked resources, races, unsafe retries, swallowed failures, or exposed secrets.
 - Usability/change cost: difficult normal invocation, hidden assembly, scattered policy, cross-module edits for one extension, mutable cross-stage state, or hard-to-follow call chains.
-- Maintainability: ambiguous names/types, classes indistinguishable by responsibility or behavior, duplicated stable behavior, `assert isinstance` on the code's own data, `getattr` dispatch on strings, untyped `**fields` bags, if/elif chains over closed sets, dependency cycles, stale comments, or unnecessary adapters and packages.
+- Maintainability: ambiguous names/types, classes indistinguishable by responsibility or behavior, duplicated stable behavior, cryptic short names, blanket underscore prefixes, one-line aliases, helpers copied across modules, `assert isinstance` on the code's own data, `getattr` dispatch on strings, untyped `**fields` bags, if/elif chains over closed sets, dependency cycles, stale comments, or unnecessary adapters and packages.
 
-Size alone is not a finding; a function running several stages, a class whose methods share no state, raw-string comparisons over a closed set, and `dict[str, Any]` records are. Missing abstractions are not defects without a concrete need. Evaluate whether removing, combining, or relocating code would clarify the flow before extracting more helpers. Keep abstractions that protect real contracts even if they have one current implementation.
+Size alone is not a finding; a function running several stages, a class whose methods share no state, raw-string comparisons over a closed set, `dict[str, Any]` records, and a role with several implementations but no ABC are. An abstraction with nothing to swap is not needed. Evaluate whether removing, combining, or relocating code would clarify the flow before extracting more helpers. Keep abstractions that protect real contracts even if they have one current implementation.
 
 Present findings before implementation unless the user authorized proceeding. For broad work, agree on scope and compatibility before restructuring.
 
@@ -33,7 +33,7 @@ Use small, independently verifiable steps. Each names the affected contracts, fi
 - Preserve public imports, signatures, errors, serialized formats, and defaults unless a break is approved. Provide compatibility adapters or migrations where consumers need them; do not preserve every private detail.
 - Keep cohesive logic together. Extract at meaningful effect, ownership, or extension boundaries; remove forwarding layers that add no policy or contract.
 - Introduce validation without silently changing accepted input or coercion. Strengthening validation may be a behavior change, not a refactor.
-- Keep default usage simple while exposing justified variation. Walk through the next credible extension and verify it through the public path; do not implement speculative variants.
+- Keep default usage simple while exposing justified variation. Walk through the next credible extension and verify the seam takes it through the public path.
 - Preserve resource lifetime, transaction scope, cancellation behavior, and execution order while moving code. These are behavior, not implementation trivia.
 - Run relevant tests and configured lint/type checks after each step. Investigate changed results; never update characterization expectations merely to accept a regression. Revert only your own failing step, preserving unrelated work.
 

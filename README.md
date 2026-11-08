@@ -16,8 +16,9 @@ They are plain `SKILL.md` folders, so they work in Claude Code, Pi, Codex, Curso
 Coding agents write Python that runs but fails a careful code review. Typical mistakes: a broad `except` that returns `None`, a request with no timeout, an untyped dict passed through five functions, an `if/elif` chain that has to be edited for every new format, a test that was loosened until it passed. These skills address those mistakes directly:
 
 - **Rules a reviewer can check.** Every rule names a concrete check: parse untrusted input once at the boundary, bound every wait and retry, catch exceptions only where recovery happens, never loosen an assertion to make a test pass.
-- **An extension check, not blanket abstraction.** Before building a component, the agent names the next likely variant and where it would go. It adds a seam only when the variants are real. Otherwise it writes direct code plus a `shortcut:` note saying where the seam belongs.
-- **Low context cost.** The core is about 1,700 words. Eight topic references (async, FastAPI, external I/O, security, pipelines, observability, patterns, project setup) load only when a task touches that topic.
+- **Interfaces first, built for extension.** Every role that can have more than one implementation (backend, provider, format, rule, stage, policy, handler) is an ABC composed in a visible list or dict, designed for the variants you can foresee, so adding one later is one new class with no edits to existing code.
+- **Readable names.** No single-letter helpers, one-line aliases, or blanket `_` prefixes; a helper copied between modules becomes one shared function.
+- **Low context cost.** The core is about 1,550 words. Eight topic references (async, FastAPI, external I/O, security, pipelines, observability, patterns, project setup) load only when a task touches that topic.
 - **Verification is part of the work.** The agent runs the repo's formatter, linter, type checker, and tests. It reports what failed or did not run, and checks that a library API exists in the installed version before using it.
 - **Refactors that preserve behavior.** `python-refactor` pins current behavior with characterization tests, keeps structural changes separate from bug fixes, and runs the checks after each step.
 
@@ -107,7 +108,7 @@ def export(rows, fmt, path):
 
 Problems: the file stays open if writing raises. The CSV has no header and depends on dict key order. Encoding is implicit. An unknown format prints a message and still "succeeds". Each new format means editing this function.
 
-**After, with python-dev's extension check** (the next variant, Parquet, is already on the roadmap):
+**After, with python-dev's interfaces-first rule** (format is a role with several implementations):
 
 ```python
 import csv
@@ -157,7 +158,7 @@ The rules applied:
 - *Actionable errors.* An unknown format raises and lists the valid ones.
 - *Keyword-only arguments* for the parameters callers could confuse.
 
-If Parquet were not actually planned, python-dev keeps the direct `if/elif` version and fixes only the bugs. That is the extension check doing its job.
+It does not add a Parquet exporter nobody asked for: the seam is built, the variants stay what the task needs.
 
 ### 3. Refactoring safely
 

@@ -1,6 +1,6 @@
 # Pattern snippets
 
-Read when applying a pattern from the extension check. Snippets show shape, not required code; adapt names and types to the domain.
+Read when building an interface from python-dev's Interfaces first rule. Snippets show shape, not required code; adapt names and types to the domain.
 
 ## Where a branch belongs
 
@@ -168,20 +168,24 @@ def staged_dir(root: Path) -> Iterator[Path]:
         shutil.rmtree(tmp, ignore_errors=True)
 ```
 
-## Template method
+## Ordered steps
 
-A fixed run loop where variants differ only in steps.
+Rules, stages, validators, metrics, callbacks: one ABC, one class per step, run from an explicit list.
 
 ```python
-class Job(ABC):
-    def run(self) -> Report:
-        items = self.load()
-        return Report([self.process(i) for i in items])
+class Rule(ABC):
+    @abstractmethod
+    def apply(self, ctx: Context) -> Context: ...
 
-    @abstractmethod
-    def load(self) -> list[Item]: ...
-    @abstractmethod
-    def process(self, item: Item) -> Result: ...
+class RemoveDeadCode(Rule):
+    def apply(self, ctx: Context) -> Context: ...
+
+DEFAULT_RULES: tuple[Rule, ...] = (RemoveDeadCode(), FoldConstants())
+
+def optimize(ctx: Context, rules: Sequence[Rule] = DEFAULT_RULES) -> Context:
+    for rule in rules:
+        ctx = rule.apply(ctx)
+    return ctx
 ```
 
 ## singledispatch
@@ -216,6 +220,6 @@ class S3BlobStore(BlobStore):
 ## Checklist
 
 - [ ] Each branch sits where it belongs: schema, adapter model, one variant per class, or a runtime guard.
-- [ ] The chosen pattern matches its fit line above; no pattern was added without a named variant or repeated behavior.
+- [ ] Every role with more than one implementation is an ABC composed in a visible list or dict; the next foreseeable variant plugs in without editing existing code.
 - [ ] Lifecycle status changes go through one transition function with conditional writes.
 - [ ] Closed sets are enums; records are dataclasses; no raw-string compares or `dict[str, Any]` records in inner code.

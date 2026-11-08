@@ -4,10 +4,9 @@ import math
 from collections import Counter
 
 from mlpipe.contracts import Algorithm
+from mlpipe.ml.engine import Engine
 from mlpipe.ml.outputs import EngineOutput, SummaryOutput, SummarySentence, TermHit
 from mlpipe.ml.text import clamp, split_sentences, tokenize
-
-from .registry import Engine
 
 MAX_SENTENCES = 80
 MAX_WORDS_PER_SENTENCE = 60
@@ -90,7 +89,7 @@ class SummaryEngine(Engine):
             )
             candidates.append((index, round(score, 4)))
 
-        target = clamp(round(total * 0.28), 1, 4) if total > 1 else 1
+        target = int(clamp(round(total * 0.28), 1, 4)) if total > 1 else 1
         selected: list[int] = []
         remaining = sorted(candidates, key=lambda item: (-item[1], item[0]))
         while remaining and len(selected) < target:

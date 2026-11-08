@@ -17,12 +17,12 @@
         "model": "zro/deepseek-v4.1-flash",
         "thinking": "high",
         "startedAt": 1794166240645,
-        "updatedAt": 1794166923163,
+        "updatedAt": 1794167006017,
         "pendingMessages": false,
         "local": false
       },
-      "version": 156,
-      "updatedAt": 1794166923164,
+      "version": 181,
+      "updatedAt": 1794167006017,
       "updatedBy": {
         "id": "session:01a1bca4-13c6-7636-84ce-f1c8d6aabe21",
         "name": "main",
@@ -53,14 +53,14 @@
         "model": "zro/deepseek-v4.1-flash",
         "thinking": "high",
         "startedAt": 1794166240645,
-        "updatedAt": 1794166923163,
+        "updatedAt": 1794167006017,
         "pendingMessages": false,
         "controlProtocol": "v1",
         "ownerIncarnation": "53bc0ed1-122f-4ada-92f4-62e8cef3828b",
         "label": "TE-1"
       },
-      "version": 157,
-      "updatedAt": 1794166923164,
+      "version": 182,
+      "updatedAt": 1794167006018,
       "updatedBy": {
         "id": "session:01a1bca4-13c6-7636-84ce-f1c8d6aabe21",
         "name": "main",
@@ -81,11 +81,11 @@
           "sessionId": "01a1bca4-13c6-7636-84ce-f1c8d6aabe21"
         },
         "startedAt": 1794166240645,
-        "updatedAt": 1794166923165,
-        "expiresAt": 1794166938165
+        "updatedAt": 1794167006018,
+        "expiresAt": 1794167021018
       },
-      "version": 158,
-      "updatedAt": 1794166923165,
+      "version": 183,
+      "updatedAt": 1794167006018,
       "updatedBy": {
         "id": "session:01a1bca4-13c6-7636-84ce-f1c8d6aabe21",
         "name": "main",
@@ -109,11 +109,11 @@
       }
     }
   },
-  "highWater": 469,
+  "highWater": 544,
   "versions": {
-    "sessions/01a1bca4-13c6-7636-84ce-f1c8d6aabe21": 156,
-    "topology/participants/cb5e9f2376397090bb62ec68fbfb8681ac68de96d0e19e63f7aff1b31acae183": 157,
-    "topology/hosts/cb5e9f2376397090bb62ec68fbfb8681ac68de96d0e19e63f7aff1b31acae183": 158,
+    "sessions/01a1bca4-13c6-7636-84ce-f1c8d6aabe21": 181,
+    "topology/participants/cb5e9f2376397090bb62ec68fbfb8681ac68de96d0e19e63f7aff1b31acae183": 182,
+    "topology/hosts/cb5e9f2376397090bb62ec68fbfb8681ac68de96d0e19e63f7aff1b31acae183": 183,
     "topology/peer-seq/3": 4
   },
   "tombstoneOrder": []

@@ -23,39 +23,7 @@ STOPWORDS = frozenset(
     """.split()
 )
 
-NEGATORS = frozenset(
-    "not no never none nobody nothing neither nor cannot cant dont doesnt didnt isnt wasnt werent wont wouldnt "
-    "shouldnt couldnt hardly barely without lacking fails failed worse terrible awful".split()
-)
-
-INTENSIFIERS: dict[str, float] = {
-    "very": 1.55,
-    "extremely": 1.9,
-    "incredibly": 1.85,
-    "really": 1.4,
-    "truly": 1.45,
-    "absolutely": 1.8,
-    "completely": 1.65,
-    "totally": 1.6,
-    "utterly": 1.85,
-    "highly": 1.45,
-    "super": 1.5,
-    "especially": 1.35,
-    "particularly": 1.3,
-    "so": 1.35,
-    "quite": 1.3,
-    "rather": 1.25,
-    "somewhat": 0.65,
-    "slightly": 0.5,
-    "barely": 0.4,
-    "kinda": 0.6,
-    "sorta": 0.6,
-    "mostly": 0.85,
-}
-
 CONTRAST_MARKERS = frozenset({"but", "however", "although", "though", "yet", "unfortunately", "still"})
-
-SENTIMENT_LABELS = {"positive", "negative", "neutral"}
 
 
 def tokenize(text: str) -> list[str]:

@@ -1,14 +1,14 @@
 """Lexicon sentiment with negation, intensifier, and contrast handling."""
 
 import math
-from typing import ClassVar
+from typing import Literal
 
 from mlpipe.contracts import Algorithm
-from mlpipe.ml.outputs import EngineOutput
-from mlpipe.ml.outputs import SentenceScore, SentimentOutput, TermHit
+from mlpipe.ml.engine import Engine
+from mlpipe.ml.outputs import EngineOutput, SentenceScore, SentimentOutput, TermHit
 from mlpipe.ml.text import CONTRAST_MARKERS, tokenize
 
-from .registry import Engine
+SentimentLabel = Literal["positive", "negative", "neutral"]
 
 LEXICON: dict[str, float] = {
     "love": 3.0, "loved": 3.0, "loves": 2.8, "adore": 3.1, "amazing": 2.9, "awesome": 2.8,
@@ -56,7 +56,7 @@ _CONTRAST_BOOST = 1.35
 _CONTRAST_DAMP = 0.8
 
 
-def _label_for(score: float) -> str:
+def _label_for(score: float) -> SentimentLabel:
     if score >= 0.15:
         return "positive"
     if score <= -0.15:
@@ -145,7 +145,7 @@ class SentimentEngine(Engine):
                     index=index,
                     text=sentence[:320],
                     score=score,
-                    label=_label_for(score),  # type: ignore[arg-type]
+                    label=_label_for(score),
                     highlights=highlights,
                 )
             )
@@ -157,7 +157,7 @@ class SentimentEngine(Engine):
             model=self.model,
             version=self.version,
             score=overall,
-            label=_label_for(overall),  # type: ignore[arg-type]
+            label=_label_for(overall),
             confidence=round(confidence, 3),
             positive_terms=sum(1 for weight, _count in terms.values() if weight > 0),
             negative_terms=sum(1 for weight, _count in terms.values() if weight < 0),

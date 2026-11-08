@@ -5,10 +5,9 @@ import math
 from collections import Counter
 
 from mlpipe.contracts import Algorithm
+from mlpipe.ml.engine import Engine
 from mlpipe.ml.outputs import EmbeddingOutput, EngineOutput, Neighbor
 from mlpipe.ml.text import split_sentences, tokenize
-
-from .registry import Engine
 
 DIM = 192
 HASHED_DIMS = 188

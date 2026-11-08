@@ -1,30 +1,14 @@
 """Algorithm registry: the single place a new consumer/worker is registered.
 
 Adding an algorithm means one new ``Engine`` subclass, one ``EngineOutput`` model,
-and one entry in ``build_registry``; topics, the API, the UI legend, and the
+and one entry in ``build_registry``; Kafka topics, the API, the UI legend, and the
 worker entrypoint all read from here.
 """
 
-from abc import ABC, abstractmethod
-from typing import ClassVar
-
 from mlpipe.contracts import Algorithm
-from mlpipe.ml.outputs import EngineOutput
+from mlpipe.ml.engine import Engine
 
-
-class Engine(ABC):
-    """One algorithm behind one Kafka consumer group."""
-
-    algorithm: ClassVar[Algorithm]
-    label: ClassVar[str]
-    description: ClassVar[str]
-    model: ClassVar[str]
-    version: ClassVar[str]
-    accent: ClassVar[str]
-
-    @abstractmethod
-    def run(self, text: str) -> EngineOutput:
-        """Pure function: same text in, same output out, no I/O."""
+ALGORITHM_TOPIC_PREFIX = "ml.tasks"
 
 
 def build_registry() -> dict[Algorithm, Engine]:
@@ -47,3 +31,7 @@ ENGINES: dict[Algorithm, Engine] = build_registry()
 
 def get_engine(algorithm: Algorithm) -> Engine:
     return ENGINES[algorithm]
+
+
+def registry_is_complete() -> bool:
+    return set(ENGINES) == set(Algorithm) and len(ENGINES) == len(Algorithm)

@@ -6,13 +6,11 @@ label on every worker: no training state, no model download, no drift.
 
 import math
 from collections import Counter
-from typing import ClassVar
 
 from mlpipe.contracts import Algorithm
+from mlpipe.ml.engine import Engine
 from mlpipe.ml.outputs import ClassLabel, ClassifyOutput, EngineOutput
 from mlpipe.ml.text import content_tokens
-
-from .registry import Engine
 
 ALPHA = 0.35
 TEMPERATURE = 1.7
@@ -136,7 +134,7 @@ class NaiveBayesModel:
             token_lists = [content_tokens(document) for document in documents]
             document_tokens[label] = token_lists
             self.label_tokens[label] = Counter(token for tokens in token_lists for token in tokens)
-            self.label_total[label] = sum(sum(counts.values()) for counts in (Counter(tokens) for tokens in token_lists))
+            self.label_total[label] = sum(len(tokens) for tokens in token_lists)
             self.vocabulary.update(token for tokens in token_lists for token in tokens)
         self.vocabulary_size: int = len(self.vocabulary)
         self.class_count: int = len(corpus)
@@ -155,14 +153,18 @@ class NaiveBayesModel:
         return scores
 
     def contributions(self, tokens: list[str], label: str) -> list[tuple[str, float]]:
+        """Per-token log-ratio against the corpus-wide rate, scaled by occurrences."""
         counts = self.label_tokens[label]
         denominator = self.label_total[label] + ALPHA * (self.vocabulary_size + ALPHA)
-        priors = {other: (self.label_total[other] + ALPHA) / (self.documents + ALPHA) for other in self.label_tokens}
+        global_counts: Counter[str] = Counter()
+        for class_counts in self.label_tokens.values():
+            global_counts.update(class_counts)
+        global_denominator = sum(self.label_total.values()) + ALPHA * self.vocabulary_size
         seen: Counter[str] = Counter(token for token in tokens if token in self.vocabulary)
         scored: list[tuple[str, float]] = []
         for token, count in seen.items():
             own = math.log((counts[token] + ALPHA) / denominator)
-            baseline = sum(math.log((prior + ALPHA) / (self.documents + ALPHA)) for prior in priors.values()) / len(priors)
+            baseline = math.log((global_counts[token] + ALPHA) / global_denominator)
             scored.append((token, (own - baseline) * count))
         scored.sort(key=lambda item: (-item[1], item[0]))
         return scored
@@ -186,7 +188,6 @@ class ClassifyEngine(Engine):
     model = "nb-support-ticket"
     version = "2.1.0"
     accent = "#a78bfa"
-    unknown_terms: ClassVar[tuple[str, ...]] = ("the",)
 
     def run(self, text: str) -> EngineOutput:
         tokens = content_tokens(text)

@@ -24,7 +24,7 @@ Coding agents write Python that runs but fails a careful code review. Typical mi
 
 ## Evals
 
-Give an agent the Task from a prompt in `evals/prompts/`, once with the skills and once without. The prompts never mention interfaces or extension points; the agent has to find them. Then:
+Give an agent the Task from a prompt in `evals/prompts/`, once with the skills and once without. The prompts never mention interfaces or extension points; the agent has to find them. Hardest first: `orm-codegen.md`, `llm-inference.md`. Then:
 
 1. Commit the result and score it.
 2. Send the Follow-up. It adds variants the first design should already have room for.

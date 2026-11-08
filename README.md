@@ -24,7 +24,13 @@ Coding agents write Python that runs but fails a careful code review. Typical mi
 
 ## Evals
 
-Give an agent a prompt from `evals/prompts/`, once with the skills and once without, then compare the two outputs:
+Give an agent the Task from a prompt in `evals/prompts/`, once with the skills and once without. The prompts never mention interfaces or extension points; the agent has to find them. Then:
+
+1. Commit the result and score it.
+2. Send the Follow-up. It adds variants the first design should already have room for.
+3. `git diff --stat HEAD` is the extension cost: a good first design adds new files and touches few existing ones.
+
+Compare the two runs:
 
 ```bash
 evals/score.sh run-with-skill/ run-without-skill/    # --fast skips ruff and mypy

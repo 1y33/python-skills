@@ -1,0 +1,1 @@
+Code me a web UI for a Kafka pipeline with multiple consumers and multiple producers for an ML pipeline. We send requests to it, they get processed, and we view the results from different ML algorithms in the web UI. Workers run in Docker, the UI is React, and the backend should be good.

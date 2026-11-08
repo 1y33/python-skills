@@ -27,6 +27,10 @@ grep -Fq 'abc.ABC with @abstractmethod' "$DEV/SKILL.md"
 grep -Fq 'class Status(StrEnum)' "$DEV/references/patterns.md"
 grep -Fq 'programmer errors (KeyError, TypeError' "$DEV/SKILL.md"
 
+# The eval scorecard parses and runs on an empty project.
+bash -n "$ROOT/evals/score.sh"
+"$ROOT/evals/score.sh" --fast "$(mktemp -d)" > /dev/null
+
 # Manifests parse and point at the skills directory.
 node -e 'const p=require(process.argv[1]); if (p.pi.skills[0] !== "./skills") process.exit(1)' "$ROOT/package.json"
 node -e 'JSON.parse(require("fs").readFileSync(process.argv[1]))' "$ROOT/.claude-plugin/plugin.json"

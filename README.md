@@ -22,6 +22,16 @@ Coding agents write Python that runs but fails a careful code review. Typical mi
 - **Verification is part of the work.** The agent runs the repo's formatter, linter, type checker, and tests. It reports what failed or did not run, and checks that a library API exists in the installed version before using it.
 - **Refactors that preserve behavior.** `python-refactor` pins current behavior with characterization tests, keeps structural changes separate from bug fixes, and runs the checks after each step.
 
+## Evals
+
+Give an agent a prompt from `evals/prompts/`, once with the skills and once without, then compare the two outputs:
+
+```bash
+evals/score.sh run-with-skill/ run-without-skill/    # --fast skips ruff and mypy
+```
+
+The scorecard counts private-underscore and 1-2 letter function names, `dict[str, Any]`, broad excepts, ABCs vs Protocols, enums, tests, ruff findings (python-dev's rule set), and `mypy --strict` errors. It is static: run the project's tests and `docker compose up` yourself.
+
 ## Before and after
 
 ### 1. Fetching remote data

@@ -1,6 +1,6 @@
 {
   "name": "python-skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agent skills for writing, reviewing, and refactoring Python: typed contracts, understandable execution, usable APIs, reliable operation.",
   "keywords": ["pi-package", "pi", "skills", "python", "claude-code"],
   "license": "MIT",
